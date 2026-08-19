@@ -1,0 +1,14 @@
+# Environments
+venv/
+env/
+
+# Python Cache
+__pycache__/
+*.pyc
+
+# Database
+*.sqlite3
+eco_tourism_db  # (If you have local db files, though Postgres runs separately)
+
+# Environment variables
+.env
