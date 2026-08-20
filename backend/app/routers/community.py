@@ -41,6 +41,18 @@ def format_host_location(loc: models.Location) -> dict:
         "submittedDate": loc.created_at.strftime("%Y-%m-%d") if loc.created_at else "2026-08-15"
     }
 
+# Add these below your existing routes in community.py
+
+@router.get("/properties")
+def get_host_properties(current_user: dict = Depends(auth.get_current_user)):
+    # Returns an empty list to satisfy the frontend's data fetch
+    return []
+
+@router.get("/bookings")
+def get_host_bookings(current_user: dict = Depends(auth.get_current_user)):
+    # Returns an empty list to satisfy the frontend's data fetch
+    return []
+
 @router.post("/upload-location")
 def upload_location(
     payload: dict = Body(...),

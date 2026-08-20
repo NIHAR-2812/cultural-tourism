@@ -297,6 +297,10 @@ def login_user(
         "user": admin.format_user_dict(user)
     }
 
+@app.get("/notifications")
+def get_notifications():
+    return []
+
 @app.get("/me")
 def get_me(current_user: models.User = Depends(auth.get_current_user)):
     return admin.format_user_dict(current_user)
