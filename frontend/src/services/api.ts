@@ -123,7 +123,7 @@ export interface MonthlyBookingActivity {
   revenueGenerated: number;
 }
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || process.env.VITE_API_URL || 'http://localhost:8000';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://cultural-tourism-pjet.onrender.com";
 
 class StorageService {
   getToken(): string | null {
