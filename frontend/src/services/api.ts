@@ -464,9 +464,21 @@ export const ApiClient = {
     return [];
   },
 
+  // UPDATED: Now dynamically routes the request based on who is logged in!
   async getPropertyById(id: string) {
-    const props = await this.getHostProperties();
-    return props.find((l) => l.id === id);
+    const user = apiStorage.getCurrentUser();
+    
+    if (user?.role === 'government' || user?.role === 'admin') {
+      const props = await this.getAllProperties('All');
+      return props.find((l) => l.id === id);
+    } else if (user?.role === 'host') {
+      const props = await this.getHostProperties();
+      return props.find((l) => l.id === id);
+    } else {
+      // Fallback for Tourists or unauthenticated users
+      const props = await this.getTouristCatalog();
+      return props.find((l) => l.id === id);
+    }
   },
 
   async getHostBookings(filter: string = 'All', search: string = ''): Promise<HostBooking[]> {
@@ -488,9 +500,17 @@ export const ApiClient = {
     return [];
   },
 
+  // UPDATED: Also role-aware to prevent fetching errors on the booking detail pages
   async getBookingById(id: string): Promise<HostBooking | undefined> {
-    const bookings = await this.getHostBookings();
-    return bookings.find((b) => b.id === id);
+    const user = apiStorage.getCurrentUser();
+    
+    if (user?.role === 'government' || user?.role === 'admin') {
+      const bookings = await this.getAllPortalBookings('All');
+      return bookings.find((b) => b.id === id);
+    } else {
+      const bookings = await this.getHostBookings();
+      return bookings.find((b) => b.id === id);
+    }
   },
 
   async getHostNotifications(): Promise<HostNotification[]> {

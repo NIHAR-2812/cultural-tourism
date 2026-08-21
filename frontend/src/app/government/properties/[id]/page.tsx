@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { GovernmentLayout } from '@/components/government/government-layout';
 import { ApiClient, HostBooking } from '@/services/api';
 import { Destination } from '@/components/data/mock-data';
-import { ArrowLeft, CheckCircle2, XCircle, Clock, MapPin, Users, ShieldCheck, FileText, AlertTriangle } from 'lucide-react';
+import { ArrowLeft, CheckCircle2, XCircle, FileText, AlertTriangle } from 'lucide-react';
 
 export default function PropertyVerificationPage() {
   const params = useParams();
@@ -17,16 +17,33 @@ export default function PropertyVerificationPage() {
   const [rejectReason, setRejectReason] = useState('');
   const [showRejectPrompt, setShowRejectPrompt] = useState(false);
   const [actionMessage, setActionMessage] = useState<string | null>(null);
+  
+  // NEW: Add an error state to handle failed API requests
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     loadProp();
   }, [id]);
 
   const loadProp = async () => {
-    const p = await ApiClient.getPropertyById(id);
-    if (p) setProperty(p);
-    const b = await ApiClient.getAllPortalBookings('All', id);
-    setBookings(b);
+    try {
+      setError(null); // Clear previous errors
+      const p = await ApiClient.getPropertyById(id);
+      
+      if (p) {
+        setProperty(p);
+      } else {
+        // Fix: Set the error state directly and stop running instead of throwing an error
+        setError(`Property ID ${id} does not exist in the database.`);
+        return; 
+      }
+      
+      const b = await ApiClient.getAllPortalBookings('All', id);
+      setBookings(b);
+    } catch (err: any) {
+      console.error("Failed to load property dossier:", err);
+      setError(err.message || "Failed to connect to the backend API.");
+    }
   };
 
   const handleApprove = async () => {
@@ -48,6 +65,23 @@ export default function PropertyVerificationPage() {
     }
   };
 
+  // NEW: Display the error message if the fetch failed
+  if (error) {
+    return (
+      <GovernmentLayout pageTitle="Property Verification Error">
+        <div className="p-12 flex flex-col items-center gap-4">
+          <div className="text-center text-sm font-mono text-[#8C2E2E] bg-[#FFF0F0] p-4 rounded-xl border border-[#8C2E2E]/30">
+            Error Loading Dossier: {error}
+          </div>
+          <Link href="/government/properties" className="inline-flex items-center gap-1.5 text-xs text-[#6B635B] hover:text-[#2E2A25] underline">
+            <ArrowLeft className="w-3.5 h-3.5" /> Return to Applications
+          </Link>
+        </div>
+      </GovernmentLayout>
+    );
+  }
+
+  // Original loading state
   if (!property) {
     return (
       <GovernmentLayout pageTitle="Property Verification">
@@ -172,7 +206,10 @@ export default function PropertyVerificationPage() {
                 </div>
                 <div>
                   <span className="font-mono text-[10px] uppercase text-[#5F6B4F] font-bold block">Spatial Coordinates</span>
-                  <p className="font-bold text-[#2E2A25]">{property.coordinates.lat}° N, {property.coordinates.lng}° E</p>
+                  <p className="font-bold text-[#2E2A25]">
+                    {property.coordinates?.lat ?? (property as any).latitude ?? 'N/A'}° N, {' '}
+                    {property.coordinates?.lng ?? (property as any).longitude ?? 'N/A'}° E
+                  </p>
                 </div>
               </div>
             </div>
